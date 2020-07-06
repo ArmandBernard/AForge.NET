@@ -414,62 +414,76 @@ namespace AForge.Controls
                 needSizeUpdate = false;
             }
 
-            lock ( sync )
+            Graphics g = e.Graphics;
+            Rectangle rect = this.ClientRectangle;
+            Pen borderPen = new Pen(borderColor, 1);
+
+            // draw rectangle
+            g.DrawRectangle(borderPen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
+
+            if (videoSource != null)
             {
-                Graphics  g = e.Graphics;
-                Rectangle rect = this.ClientRectangle;
-                Pen       borderPen = new Pen( borderColor, 1 );
+                bool drawframe = false;
+                Bitmap frame = null;
 
-                // draw rectangle
-                g.DrawRectangle( borderPen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1 );
-
-                if ( videoSource != null )
+                // lock whilst accessing frame
+                lock (sync)
                 {
-                    if ( ( currentFrame != null ) && ( lastMessage == null ) )
+                    // check everything is set to render frame
+                    drawframe = (currentFrame != null) && (lastMessage == null) && (videoSource != null);
+
+                    if (drawframe)
                     {
-                        Bitmap frame = ( convertedFrame != null ) ? convertedFrame : currentFrame;
-
-                        if ( keepRatio )
-                        {
-                            double ratio = (double) frame.Width / frame.Height;
-                            Rectangle newRect = rect;
-
-                            if ( rect.Width < rect.Height * ratio )
-                            {
-                                newRect.Height = (int) ( rect.Width / ratio );
-                            }
-                            else
-                            {
-                                newRect.Width = (int) ( rect.Height * ratio );
-                            }
-
-                            newRect.X = ( rect.Width - newRect.Width ) / 2;
-                            newRect.Y = ( rect.Height - newRect.Height ) / 2;
-
-                            g.DrawImage( frame, newRect.X + 1, newRect.Y + 1, newRect.Width - 2, newRect.Height - 2);
-                        }
-                        else
-                        {
-                            // draw current frame
-                            g.DrawImage( frame, rect.X + 1, rect.Y + 1, rect.Width - 2, rect.Height - 2);
-                        }
-
-                        firstFrameNotProcessed = false;
-                    }
-                    else
-                    {
-                        // create font and brush
-                        SolidBrush drawBrush = new SolidBrush( this.ForeColor );
-
-                        g.DrawString( ( lastMessage == null ) ? "Connecting ..." : lastMessage,
-                            this.Font, drawBrush, new PointF( 5, 5 ) );
-
-                        drawBrush.Dispose( );
+                        frame = (convertedFrame != null) ? (Bitmap)convertedFrame.Clone() : (Bitmap)currentFrame.Clone();
                     }
                 }
 
-                borderPen.Dispose( );
+                if (drawframe)
+                {
+                    if (keepRatio)
+                    {
+                        double ratio = (double)frame.Width / frame.Height;
+                        Rectangle newRect = rect;
+
+                        if (rect.Width < rect.Height * ratio)
+                        {
+                            newRect.Height = (int)(rect.Width / ratio);
+                        }
+                        else
+                        {
+                            newRect.Width = (int)(rect.Height * ratio);
+                        }
+
+                        newRect.X = (rect.Width - newRect.Width) / 2;
+                        newRect.Y = (rect.Height - newRect.Height) / 2;
+
+                        g.DrawImage(frame, newRect.X + 1, newRect.Y + 1, newRect.Width - 2, newRect.Height - 2);
+                    }
+                    else
+                    {
+                        // draw copied frame
+                        g.DrawImage(frame, rect.X + 1, rect.Y + 1, rect.Width - 2, rect.Height - 2);
+                    }
+
+                    // dispose of copied frame
+                    frame.Dispose();
+                    frame = null;
+
+                    firstFrameNotProcessed = false;
+                }
+                else
+                {
+                    // create font and brush
+                    SolidBrush drawBrush = new SolidBrush(this.ForeColor);
+
+                    g.DrawString((lastMessage == null) ? "Connecting ..." : lastMessage,
+                        this.Font, drawBrush, new PointF(5, 5));
+
+                    drawBrush.Dispose();
+                }
             }
+
+            borderPen.Dispose();
         }
 
         // Update controls size and position
