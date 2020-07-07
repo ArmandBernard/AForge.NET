@@ -39,7 +39,6 @@ namespace AForge.Controls
             // 
             // VideoSourcePlayer
             // 
-            this.Paint += new System.Windows.Forms.PaintEventHandler( this.VideoSourcePlayer_Paint );
             this.ParentChanged += new System.EventHandler( this.VideoSourcePlayer_ParentChanged );
             this.ResumeLayout( false );
 
