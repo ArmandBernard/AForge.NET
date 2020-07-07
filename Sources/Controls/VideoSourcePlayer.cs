@@ -400,7 +400,7 @@ namespace AForge.Controls
         }
 
         // Paint control
-        private void VideoSourcePlayer_Paint( object sender, PaintEventArgs e )
+        private void VideoSourcePlayer_Paint( PaintEventArgs e )
         {
             if ( !Visible )
             {
@@ -616,6 +616,13 @@ namespace AForge.Controls
         private void parent_SizeChanged( object sender, EventArgs e )
         {
             UpdatePosition( );
+        }
+        
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+
+            VideoSourcePlayer_Paint(e);
         }
     }
 }
